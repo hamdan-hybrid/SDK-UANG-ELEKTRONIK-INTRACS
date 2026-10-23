@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10231f">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <title>HYBRID PASSTI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="img">
+            <rect x="4" y="5" width="16" height="14" rx="2"></rect>
+            <path d="M8 9h8M8 13h5M8 16h3"></path>
+          </svg>
+        </div>
+        <div>
+          <h1>HYBRID PASSTI</h1>
+          <p class="app-subtitle">Uang Elektronik</p>
+        </div>
+      </div>
+      <div class="topbar-meta">
+        <span class="transport-badge" id="transportBadge">NODE SERIAL</span>
+        <span class="version-label">v1.0 web port</span>
+      </div>
+      <div class="connection-card" aria-live="polite">
+        <div class="status-dot" id="statusDot"></div>
+        <div>
+          <span class="muted-label">READER STATUS</span>
+          <strong id="connectionLabel">Disconnected</strong>
+          <small id="connectionDetail">Connect the PASSTI reader to begin.</small>
+        </div>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <div class="dashboard-grid">
+        <aside class="sidebar">
+          <section class="panel connection-panel">
+            <div class="panel-heading"><span class="step-index">01</span><div><h3>Connection</h3></div></div>
+            <label class="field-label" for="portInput">USB reader</label>
+            <div class="port-row"><select id="portInput"><option value="">Scanning USB ports...</option></select></div>
+            <div class="button-stack">
+              <button class="button button-primary" id="connectButton">Connect</button>
+              <button class="button button-quiet" id="disconnectButton" disabled>Disconnect</button>
+              <button class="button button-outline" data-action="initialize" disabled>Reader INIT</button>
+            </div>
+            <div class="amount-section">
+              <div class="panel-heading"><span class="step-index">02</span><div><h3>Amount</h3></div></div>
+              <div class="amount-grid" id="amountOptions">
+                <label class="amount-option selected"><input type="radio" name="amount" value="1" checked><span>Rp 1</span></label>
+                <label class="amount-option"><input type="radio" name="amount" value="1000"><span>Rp 1.000</span></label>
+                <label class="amount-option"><input type="radio" name="amount" value="5000"><span>Rp 5.000</span></label>
+                <label class="amount-option"><input type="radio" name="amount" value="10000"><span>Rp 10.000</span></label>
+                <label class="amount-option"><input type="radio" name="amount" value="1000000"><span>Rp 1.000.000</span></label>
+                <label class="amount-option"><input type="radio" name="amount" value="0"><span>Rp 0</span></label>
+              </div>
+              <div class="button-stack compact-actions">
+                <button class="button button-primary action-button" data-action="deduct" disabled>Deduct / tap kartu</button>
+                <button class="button button-quiet action-button" data-action="balance" disabled>Check balance</button>
+              </div>
+              <div class="payment-session" id="paymentSession" hidden>
+                <div><span>No Trx</span><strong id="paymentId">-</strong></div>
+                <div><span>Tagihan</span><strong id="paymentAmount">-</strong></div>
+                <div><span>Terbayar</span><strong id="paymentPaid">-</strong></div>
+                <div><span>Sisa</span><strong id="paymentRemaining">-</strong></div>
+                <small id="paymentMessage"></small>
+                <button class="button button-quiet" id="cancelPayment">Batalkan transaksi</button>
+              </div>
+              <div class="closing-data">
+                <a href="/api/data/closing" download>http://localhost:4173/api/data/closing</a>
+                <small>Download ZIP, lalu data lama dihapus setelah download selesai.</small>
+              </div>
+            </div>
+          </section>
+        </aside>
+
+        <section class="main-column">
+          <section class="panel output-panel">
+            <div class="output-toolbar"><div class="panel-heading"><span class="step-index">03</span><div><h3>Result</h3></div></div><div class="toolbar-actions"><button class="icon-button" id="clearOutput" title="Clear output">CLR</button></div></div>
+            <div class="result-summary" id="resultSummary"><span class="summary-kicker">READY</span><strong>Connect a reader to unlock operations</strong><span>Node Serial uses the connected PASSTI reader.</span></div>
+            <pre class="console" id="consoleOutput" aria-live="polite">PASSTI CONTROL DESK
+Waiting for transport...</pre>
+          </section>
+
+          <section class="panel api-docs-panel">
+            <div class="panel-heading"><span class="step-index">04</span><div><h3>Parking API</h3></div></div>
+            <div class="api-details">
+              <div class="api-examples">
+                <div class="api-example"><div class="api-example-heading"><strong>Check balance cURL</strong><button class="button button-outline copy-button" data-copy="checkBalanceCurl">Copy</button></div><pre id="checkBalanceCurl">curl -X POST http://localhost:4173/api/parking/check-balance \
+  -H "Content-Type: application/json" \
+  -d '{"transactionId":"PARK-0001","amount":5000}'</pre></div>
+                <div class="api-example"><div class="api-example-heading"><strong>Deduct cURL</strong><button class="button button-outline copy-button" data-copy="curlExample">Copy</button></div><pre id="curlExample">curl -X POST http://localhost:4173/api/parking/deduct \
+  -H "Content-Type: application/json" \
+  -d '{"transactionId":"PARK-0001","amount":5000,"gateId":"GATE-01"}'</pre></div>
+                <div class="api-example"><div class="api-example-heading"><strong>PHP</strong><button class="button button-outline copy-button" data-copy="phpExample">Copy</button></div><pre id="phpExample">&lt;?php
+$data = [
+  'transactionId' =&gt; 'PARK-0001',
+  'amount' =&gt; 5000,
+  'gateId' =&gt; 'GATE-01'
+];
+$ch = curl_init('http://localhost:4173/api/parking/deduct');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$response = json_decode(curl_exec($ch), true);
+curl_close($ch);
+if ($response['success'] === true) { /* buka palang */ }</pre></div>
+              </div>
+              <div class="api-response"><strong>Response sukses</strong><pre>{
+  "success": true,
+  "transactionId": "PARK-0001",
+  "amount": 5000,
+  "paid": 5000,
+  "remaining": 0,
+  "barrier": { "requested": true }
+}</pre><strong>Saldo kurang</strong><pre>{
+  "success": false,
+  "paid": 0,
+  "remaining": 5000,
+  "message": "Saldo kartu kurang, kartu tidak dipotong. Tempel kartu lain ..."
+}</pre><small>Kirim ulang request dengan transactionId yang sama sampai success true.</small></div>
+            </div>
+          </section>
+
+        </section>
+      </div>
+    </main>
+    <footer class="footer"><span>HYBIRD PASSTI / browser edition</span><span id="clock"></span></footer>
+  </div>
+  <script src="node-client.js"></script>
+</body>
+</html>
