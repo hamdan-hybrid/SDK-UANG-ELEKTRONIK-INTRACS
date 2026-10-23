@@ -5,7 +5,7 @@
   "description": "Node.js web bridge for the PASSTI reader",
   "main": "server.js",
   "scripts": {
-    "start": "node --env-file=.env server.js",
+    "start": "node start.js",
     "dev": "node --env-file=.env --watch server.js",
     "build": "node build.js",
     "pm2:start": "pm2 start ecosystem.config.cjs",
@@ -14,7 +14,7 @@
     "pm2:logs": "pm2 logs hybrid-passti"
   },
   "engines": {
-    "node": ">=22.0.0 <26"
+    "node": "^22.0.0"
   },
   "dependencies": {
     "archiver": "^8.0.0",

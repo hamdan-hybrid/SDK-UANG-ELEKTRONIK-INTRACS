@@ -2,20 +2,83 @@
 
 Web port of `PASSTI_SampleApp` for the HYBRID-PASSTI workspace.
 
-## Versi Node.js
+## Cara menjalankan
 
-Jalankan dengan **Node.js 22 LTS** (bukan 26). Diuji 2026-10-23: modul `serialport` (12 maupun 13) di Node 26 baru membaca jawaban reader ±30 detik kemudian, sedangkan di Node 22 langsung (±0 dtk setelah reader menjawab).
+### 1. Syarat: Node.js 22
 
-## Run
+SDK **wajib Node.js 22 LTS**. Di Node 26, modul `serialport` baru menerima jawaban reader ±30 detik kemudian (diuji 2026-10-23), sehingga potong saldo sangat lambat. Di Node 22 jawaban langsung diterima.
 
-From this folder:
+Node 22 cukup **terpasang**, tidak harus menjadi node bawaan. `npm start` dan `npm run pm2:start` mencari node 22 sendiri (nvm, fnm, n, atau node sistem). Bila node 22 tidak ditemukan, server menolak jalan dengan pesan yang jelas.
+
+Pasang Node 22 lewat nvm (sekali saja):
 
 ```bash
-npm install
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+source ~/.bashrc
+nvm install 22
+```
+
+Bila node 22 terpasang di lokasi lain, isi `PASSTI_NODE` dengan path-nya, misalnya `PASSTI_NODE=/opt/node22/bin/node npm start`.
+
+### 2. Izin akses reader (sekali saja)
+
+```bash
+sudo usermod -aG dialout $USER
+```
+
+Lalu logout dan login lagi agar `/dev/ttyUSB0` bisa dibuka.
+
+### 3. Pasang modul
+
+Dari folder ini (folder hasil ekstrak ZIP di komputer client):
+
+```bash
+nvm exec 22 npm ci --omit=dev
+```
+
+`npm ci` harus dengan node 22 karena modul reader dipasang untuk versi node yang menjalankannya. Di versi lain perintah ini ditolak (`EBADENGINE`, dari `engine-strict` di `.npmrc`).
+
+### 4. Jalankan dan sambungkan reader (pertama kali)
+
+```bash
+npm install --global pm2     # sekali saja, untuk service PM2
 npm start
 ```
 
-Open <http://localhost:4173> in Chrome or Edge.
+Buka <http://localhost:4173> di Chrome atau Edge **di komputer SDK**, pilih port reader (mis. `/dev/ttyUSB0`), klik **Connect**, lalu **Reader INIT**.
+
+### 5. Jalankan sebagai service PM2 (sekali klik)
+
+Setelah Reader INIT berhasil, muncul tombol **Jalankan sebagai service PM2**. Klik tombol itu: SDK berhenti sebentar (±5 detik), lalu berjalan di PM2 (`hybrid-passti`, node 22) dan daftar PM2 disimpan (`pm2 save`). Tombol hanya bisa dipakai dari komputer SDK sendiri (localhost).
+
+Bila halaman menampilkan perintah `sudo env PATH=... pm2 startup ...`, jalankan perintah itu **sekali** di terminal agar PM2 (dan SDK) otomatis jalan saat komputer menyala.
+
+Lewat terminal juga bisa: `npm run pm2:start`, `pm2 save`, lalu `pm2 startup`.
+
+### Reader otomatis connect + INIT
+
+Port reader yang terakhir berhasil INIT disimpan di `reader.json` (di luar folder `data`, jadi tidak ikut terhapus saat closing data). Setelah itu reader **otomatis connect + INIT** tanpa klik:
+
+- saat SDK start atau restart (PM2, `npm start`, komputer menyala);
+- saat USB reader dicabut lalu dipasang lagi.
+
+Bila reader belum terpasang, SDK mencoba lagi tiap 5 detik. Klik **Disconnect** menghentikan sambung ulang otomatis sampai SDK restart. Untuk mengganti port reader: Disconnect, pilih port baru, Connect, lalu Reader INIT. Hapus `reader.json` untuk mematikan fitur ini.
+
+Perintah harian:
+
+```bash
+pm2 ls                    # hybrid-passti harus "online"
+npm run pm2:logs          # lihat log ([auto-reader] = sambung otomatis)
+npm run pm2:restart       # restart SDK
+npm run pm2:stop          # hentikan SDK
+```
+
+### Masalah umum
+
+- **"SDK uang elektronik wajib dijalankan dengan Node.js 22"** atau **"Node.js 22 tidak ditemukan"**: node 22 belum terpasang. Jalankan `nvm install 22`. Untuk PM2, setelah itu jalankan `pm2 delete hybrid-passti` lalu `npm run pm2:start` dan `pm2 save`.
+- **`EBADENGINE` saat `npm ci`**: jalankan dengan `nvm exec 22 npm ci --omit=dev`.
+- **Reader tidak bisa dibuka (permission denied)**: langkah 2 belum dilakukan, atau belum logout/login.
+- **Tombol service PM2 gagal / SDK tidak kembali**: cek `pm2-service.log` di folder SDK dan `npm run pm2:logs`.
 
 ## Build untuk komputer client
 
@@ -25,29 +88,7 @@ Buat paket deploy yang bisa dipindahkan ke komputer lain:
 npm run build
 ```
 
-Hasilnya ada di folder `build/` dalam bentuk folder production dan file ZIP. JavaScript server, client, dan `lib` di dalam paket sudah di-obfuscate agar sulit dibaca atau diedit. Di komputer tujuan, masuk ke folder hasil ekstrak lalu jalankan `npm install --omit=dev` dan `npm run pm2:start`.
-
-## Production with PM2
-
-Install PM2 once on the production machine, then run the application from this folder:
-
-```bash
-npm install
-npm install --global pm2
-npm run pm2:start
-pm2 save
-pm2 startup
-```
-
-Useful commands:
-
-```bash
-npm run pm2:restart
-npm run pm2:stop
-npm run pm2:logs
-```
-
-The PM2 configuration is stored in `ecosystem.config.cjs`. It runs one forked process, loads `.env`, restarts after crashes, and does not watch source files.
+Hasilnya ada di folder `build/` dalam bentuk folder production dan file ZIP. JavaScript server, client, dan `lib` di dalam paket sudah di-obfuscate agar sulit dibaca atau diedit. `npm run build` menghapus seluruh folder `build/`, termasuk `build/hybrid-passti/data`. Bila SDK sedang dijalankan dari folder itu, backup `data` lebih dulu lalu kembalikan setelah build. Di komputer tujuan, ikuti **Cara menjalankan** di atas mulai langkah 1.
 
 ## Modes
 

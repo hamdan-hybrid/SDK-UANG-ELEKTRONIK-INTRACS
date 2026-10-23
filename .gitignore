@@ -1,0 +1,4 @@
+node_modules/
+data/
+reader.json
+pm2-service.log

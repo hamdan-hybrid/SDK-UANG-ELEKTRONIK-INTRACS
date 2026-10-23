@@ -307,3 +307,7 @@ body { background: var(--paper); }
 .payment-session .button { grid-column: 1 / -1; }
 
 .field-hint { color: var(--muted); font-size: 10px; line-height: 1.4; }
+
+.service-box { display: grid; gap: 8px; margin-top: 12px; padding: 10px; border: 1px solid #6d9abd; border-radius: 8px; background: var(--action-soft); }
+.service-box small { color: var(--green-dark); font-size: 11px; line-height: 1.4; }
+.service-box code { font-size: 10px; line-height: 1.4; word-break: break-all; padding: 6px; border-radius: 6px; background: white; user-select: all; }

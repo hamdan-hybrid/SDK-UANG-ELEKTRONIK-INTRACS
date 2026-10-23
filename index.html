@@ -49,6 +49,12 @@
               <button class="button button-quiet" id="disconnectButton" disabled>Disconnect</button>
               <button class="button button-outline" data-action="initialize" disabled>Reader INIT</button>
             </div>
+            <div class="service-box" id="serviceBox" hidden>
+              <small id="serviceStatus"></small>
+              <button class="button button-primary" id="serviceButton" hidden>Jalankan sebagai service PM2</button>
+              <small id="serviceStartupHint" hidden>PM2 belum jalan otomatis saat komputer menyala. Jalankan sekali di terminal:</small>
+              <code id="serviceStartup" hidden></code>
+            </div>
             <div class="amount-section">
               <div class="panel-heading"><span class="step-index">02</span><div><h3>Amount</h3></div></div>
               <div class="amount-grid" id="amountOptions">
